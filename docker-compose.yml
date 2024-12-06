@@ -1,0 +1,38 @@
+services:
+  backend:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG}'
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - DOMAIN=${DOMAIN}
+      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - SMTP_HOST=${SMTP_HOST?Variable not set}
+      - SMTP_USER=${SMTP_USER?Variable not set}
+      - SMTP_PASSWORD=${SMTP_PASSWORD?Variable not set}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL?Variable not set}
+      - POSTGRES_SERVER=${POSTGRES_SERVER?Variable not set}
+      - POSTGRES_PORT=${POSTGRES_PORT?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - SENTRY_DSN=${SENTRY_DSN?Variable not set}
+      - PROJECT_NAME=${PROJECT_NAME?Variable not set}
+    build:
+      context: ./backend
+
+  frontend:
+    image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG}'
+    restart: always
+    env_file:
+      - .env
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=${DOMAIN_ON_AZURE?Variable not set}
+        - NODE_ENV=production

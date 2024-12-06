@@ -1,0 +1,19 @@
+.vscode
+/test-results/
+.venv
+# System
+.DS_Store
+
+# Pip
+*.egg-info
+dist/
+
+# Testing
+.pytest_cache/
+.coverage
+
+#Jupter-notebook
+.ipynb_checkpoints/
+
+#pylint
+.pylintrc

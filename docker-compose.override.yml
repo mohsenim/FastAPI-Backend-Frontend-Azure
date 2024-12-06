@@ -1,0 +1,74 @@
+services:
+
+  db:
+    image: postgres:12
+    restart: no
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    ports:
+      - "5432:5432"
+
+  backend:
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    restart: "no"
+    ports:
+      - "8000:8000"
+    build:
+      context: ./backend
+    command:
+      - fastapi
+      - run
+      - --reload
+      - "app/main.py"
+    develop:
+      watch:
+        - path: ./backend
+          action: sync
+          target: /app
+          ignore:
+            - ./backend/.venv
+            - .venv
+        - path: ./backend/pyproject.toml
+          action: rebuild
+    # volumes:
+      # - ./backend/htmlcov:/app/htmlcov
+    environment:
+      SMTP_HOST: "mailcatcher"
+      SMTP_PORT: "1025"
+      SMTP_TLS: "false"
+      EMAILS_FROM_EMAIL: "noreply@example.com"
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+
+  frontend:
+    restart: "no"
+    ports:
+      - "5173:80"
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=${VITE_API_LOCAL_URL?Variable not set}
+        - NODE_ENV=development
+
+volumes:
+  app-db-data:
